@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# /////////////////////////////
-# Script for time card format
-# ///////////////////////////
+# /////////////////////////////////////
+# /// Script for time card format ////
+# ///////////////////////////////////
 
 # /////////// Functions ///////////
+# ////////////////////////////////
 
 # /////// DATES ///////
 
 # Check date formatting
-function check_date_format() {    
+check_date_format() {    
 input=$1
 while [[ ! $input =~ ^[0-9]{2}-[0-9]{2}-[0-9]{4}$ ]]
 do
@@ -19,43 +20,43 @@ echo $input
 }
 
 # Check if year is a leap year
-function leap_year(){            
+leap_year(){            
   year=$1
   (( !(year % 4) && ( year % 100 || !(year % 400) ) )) &&
     echo 1 || echo 0
 }
 
 # Check for valid date entry
-function date_check(){
-in_month=$1
-in_day=$2
-in_leap_date=$3
+date_check(){
+month=$1
+day=$2
+leap_date=$3
 
-# 31 days in Jan,Mar,May,July,Aug,Oct,Dec
-if [ "$in_month" -eq "01" ] || [ "$in_month" -eq "03" ] || [ "$in_month" -eq "05" ] || [ "$in_month" -eq "07" ] || [ "$in_month" -eq "08" ] || [ "$in_month" -eq "10" ] || [ "$in_month" -eq "12" ]; then
-  if [ $((10#$in_day)) -lt 0 ] || [ $((10#$in_day)) -gt 31 ]; then
+## 31 days in Jan,Mar,May,July,Aug,Oct,Dec
+if [ "$month" -eq "01" ] || [ "$month" -eq "03" ] || [ "$month" -eq "05" ] || [ "$month" -eq "07" ] || [ "$month" -eq "08" ] || [ "$month" -eq "10" ] || [ "$month" -eq "12" ]; then
+  if [ $((10#$day)) -lt 0 ] || [ $((10#$day)) -gt 31 ]; then
     echo 1
   else
     echo 0
   fi
 fi
 
-# 30 days in Apr,June,Sept,Nov
-if [ $in_month -eq "04" ] || [ $in_month -eq "06" ] || [ $in_month -eq "09" ] || [ $in_month -eq "11" ]; then
-  if [ $((10#$in_day)) -lt "0" ] || [ $((10#$in_day)) -gt "30" ]; then
+## 30 days in Apr,June,Sept,Nov
+if [ $month -eq "04" ] || [ $month -eq "06" ] || [ $month -eq "09" ] || [ $month -eq "11" ]; then
+  if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "30" ]; then
     echo 1
   else
     echo 0
   fi
 fi
 
-# 28-29 days in Feb
-if [ $in_month -eq "02" ]; then
-  if [ $in_leap_date -eq "1" ]; then
-    if [ $((10#$in_day)) -lt "0" ] || [ $((10#$in_day)) -gt "29" ]; then
+## 28-29 days in Feb
+if [ $month -eq "02" ]; then
+  if [ $leap_date -eq "1" ]; then
+    if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "29" ]; then
       echo 1  
-  elif [ $in_leap_date -eq "0" ]; then
-    if [ $((10#$in_day)) -lt "0" ] || [ $((10#$in_day)) -gt "28" ]; then
+  elif [ $leap_date -eq "0" ]; then
+    if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "28" ]; then
       echo 1
   else
     echo 0
@@ -78,21 +79,22 @@ echo "$input"
 }
 
 # Convert minutes into decimal format for submission
-CONVERT_BASE_SIXTY() {
-MIN=$((10#$1))
-if [ $MIN -ge 0 ] && [ $MIN -le 14 ]; then
-  BASETEN=0
-elif [ $MIN -ge 15 ] && [ $MIN -le 29 ]; then
-  BASETEN="25"
-elif [ $MIN -ge 30 ] && [ $MIN -le 44 ]; then
-  BASETEN="50"
-elif [ $MIN -ge 45 ] && [ $MIN -le 59 ]; then
-  BASETEN="75"
+convert_base_sixty() {
+min=$((10#$1))
+if [ $min -ge 0 ] && [ $min -le 14 ]; then
+  baseten=0
+elif [ $min -ge 15 ] && [ $min -le 29 ]; then
+  baseten="25"
+elif [ $min -ge 30 ] && [ $min -le 44 ]; then
+  baseten="50"
+elif [ $min -ge 45 ] && [ $min -le 59 ]; then
+  baseten="75"
 fi
-echo $BASETEN
+echo $baseten
 }
 
 # /////////// Input & Prompts ///////////
+# //////////////////////////////////////
 
 printf "Welcome to the Timecard Logging System.\nHere you will enter the dates and hours you've worked.\nTasks should be separated and itemized with dates/hours recorded for each entry.\n"
 
@@ -125,7 +127,7 @@ fi
 # /////// STARTING ///////
 
 # Prompt to enter start date
-printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the START of your shift: "
+printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the START of your shift: "
 read INPUT
 IN_DATE=$(check_date_format $INPUT)     # This var equals the formatted date
 
@@ -138,7 +140,7 @@ IN_LEAP_DATE=$(leap_year $IN_YEAR)    # 1 = yes, 0 = no
 IN_FUNC_TEST=$(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE)
 while [[ $IN_FUNC_TEST -eq 1 ]]; do
   echo "That day doesn't exist in that month. Try again."
-  printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the START of your shift: "
+  printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the START of your shift: "
   read INPUT
   IN_DATE=$(check_date_format $INPUT) # This var equals the formatted date
 
@@ -150,7 +152,7 @@ while [[ $IN_FUNC_TEST -eq 1 ]]; do
 done
 
 # Prompt to enter start time
-printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM\nEnter START time for $IN_DATE: "
+printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter START time for $IN_DATE: "
 read INPUT
 IN_TIME=$(check_time_format $INPUT)
 
@@ -161,8 +163,9 @@ CMBN=$INHOUR$INMIN
 
 # Check combineid IN value
 while [ $CMBN -ge 2400 ]; do
-  echo "The time you enter cannot exceed 23:59"
-  echo -n "Try again: "
+  echo "The time you enter cannot exceed 23:59. Try again."
+  echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
+	echo "Enter START time for $IN_DATE: "
   read INPUT
   IN_TIME=$(check_time_format $INPUT)
   INHOUR=$(echo $IN_TIME | awk -F: '{print $1}')
@@ -173,7 +176,7 @@ done
 # /////// ENDING ///////
 
 # Prompt to enter end date
-printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the END of your shift: "
+printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the END of your shift: "
 read INPUT
 OUT_DATE=$(check_date_format $INPUT) # This var equals the formatted date
 
@@ -185,7 +188,7 @@ OUT_LEAP_DATE=$(leap_year $OUT_YEAR)  # 1 = yes, 0 = no
 OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
 while [[ $OUT_FUNC_TEST -eq 1 ]]; do
   echo "That day doesn't exist in that month. Try again."
-  printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the END of your shift: "
+  printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the END of your shift: "
   read INPUT
   OUT_DATE=$(check_date_format $INPUT) # This var equals the formatted date
 
@@ -197,19 +200,19 @@ while [[ $OUT_FUNC_TEST -eq 1 ]]; do
 done
 
 # Prompt eo enter end time
-printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM\nEnter END time for $IN_DATE: "
+printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter END time for $OUT_DATE: "
 read INPUT
 OUT_TIME=$(check_time_format $INPUT)
 
 OUTHOUR=$(echo $OUT_TIME | awk -F: '{print $1}')
 OUTMIN=$(echo $OUT_TIME | awk -F: '{print $2}')
-COMBN=$OUTHOUR$OUTMIN  # This needs to be passed into the same func as IN
+COMBN=$OUTHOUR$OUTMIN
 
-# Inserting here, see above
 # Check combined OUT value
 while [ $COMBN -ge 2400 ]; do
-  echo "The time you enter cannot exceed 23:59"
-  echo -n "Try again: "
+  echo "The time you enter cannot exceed 23:59. Try again."
+  echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
+	echo -n "Enter END time for $OUT_DATE: "
   read INPUT
   OUT_TIME=$(check_time_format $INPUT)
   OUTHOUR=$(echo $IN_TIME | awk -F: '{print $1}')
@@ -218,6 +221,7 @@ while [ $COMBN -ge 2400 ]; do
 done
 
 # /////////// Some calculations ///////////
+# ////////////////////////////////////////
 
 MINSUB=$(((10#$OUTMIN)-(10#$INMIN)))
 
@@ -227,28 +231,33 @@ if [ $MINSUB -lt 0 ]; then
   else let MINSUB=$MINSUB
 fi
 
-MINCALC=$(($(CONVERT_BASE_SIXTY $MINSUB)))
-
 # Convert hours to base ten
 FIRSTIN=$((10#$INHOUR))
 FIRSTOUT=$((10#$OUTHOUR))
-HOURS=`echo $(($FIRSTOUT-$FIRSTIN))`
-
+# Convert minutes to base ten
 SECONDIN=$((10#$INMIN))
 SECONDOUT=$((10#$OUTMIN))
 
+HOURS=$(($FIRSTOUT-$FIRSTIN))
+# Hours offset for overnight
+if [ $FIRSTIN -gt $FIRSTOUT ]; then HOURS=$(((24-$FIRSTIN) + $FIRSTOUT)); fi
+
 # If punch in and out are not whole hours adjust by one hour
 if [ $SECONDIN -gt $SECONDOUT  ]; then
-  let HOURS=$(($HOURS-1))
-  else let HOURS=$HOURS
+  HOURS=$(($HOURS-1))
+ # else HOURS=$HOURS
 fi
+
+MINCALC=$(($(convert_base_sixty $MINSUB)))
 
 # Format total as a float
 TOTAL=$HOURS"."$MINCALC
 
+#
 # Prompt for description of work
 echo -n "Enter a description: "
 read DESC_INPUT
+#
 
 # /////////// Output ///////////
 

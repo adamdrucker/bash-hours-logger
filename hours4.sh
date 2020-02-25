@@ -33,10 +33,9 @@ elif [ $THREE == "N" ] || [ $THREE == "n" ]; then
 fi
 
 
-
 # /////////// DATES ///////////
 # ////////////////////////////
-function check_date_format() {
+function check_date_format() {		# Check date formatting
 input=$1
 while [[ ! $input =~ ^[0-9]{2}-[0-9]{2}-[0-9]{4}$ ]]
 do
@@ -45,42 +44,12 @@ done
 echo $input
 }
 
-
-
-# /////// STARTING DATE ///////
-printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the start of your shift: "
-read INPUT
-IN_DATE=$(check_date_format $INPUT) # This var equals the formatted date
-# IN_FINAL_DATE=$(check_date $IN_DATE) # Hopefully run the verified date above thru the last check
-
-# /////// ENDING DATE ///////
-printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the end of your shift: "
-read INPUT
-OUT_DATE=$(check_date_format $INPUT) # This var equals the formatted date
-# OUT_FINAL_DATE=$(check_date $OUT_DATE) # Hopefully run the verified date above thru the last check
-
-
-# Break dates into variables
-# --> Turn into func? <--
-IN_MONTH=$(echo $IN_DATE | awk -F'-' '{print $1}')
-IN_DAY=$(echo $IN_DATE | awk -F'-' '{print $2}')
-IN_YEAR=$(echo $IN_DATE | awk -F'-' '{print $3}')
-OUT_MONTH=$(echo $OUT_DATE | awk -F'-' '{print $1}')
-OUT_DAY=$(echo $OUT_DATE | awk -F'-' '{print $2}')
-OUT_YEAR=$(echo $OUT_DATE | awk -F'-' '{print $3}')
-
-
-function leap_year(){
+function leap_year(){							# Check if year is a leap year
 	year=$1
 	(( !(year % 4) && ( year % 100 || !(year % 400) ) )) &&
 		echo 1 || echo 0
 }
-IN_LEAP_DATE=$(leap_year $IN_YEAR) 		# 1 = yes, 0 = no
-OUT_LEAP_DATE=$(leap_year $OUT_YEAR) 	# 1 = yes, 0 = no
 
-
-# Something isn't catching here, the input is not formatted right?
-# strings vs int? if line checking day might not be working
 function date_check(){
 in_month=$1
 in_day=$2
@@ -88,45 +57,91 @@ in_leap_date=$3
 # 31 days in Jan,Mar,May,July,Aug,Oct,Dec
 if [ "$in_month" -eq "01" ] || [ "$in_month" -eq "03" ] || [ "$in_month" -eq "05" ] || [ "$in_month" -eq "07" ] || [ "$in_month" -eq "08" ] || [ "$in_month" -eq "10" ] || [ "$in_month" -eq "12" ]; then 
   if [ $((10#$in_day)) -lt 0 ] || [ $((10#$in_day)) -gt 31 ]; then
-		return 1
+		echo 1
+	else
+		echo 0
   fi
+fi
+
+# 30 days in Apr,June,Sept,Nov
+if [ $in_month -eq "04" ] || [ $in_month -eq "06" ] || [ $in_month -eq "09" ] || [ $in_month -eq "11" ]; then
+  if [ $((10#$in_day)) -lt "0" ] || [ $((10#$in_day)) -gt "30" ]; then
+    echo 1
+	else
+		echo 0
+  fi
+fi
+
+# 28-29 days in Feb
+if [ $in_month -eq "02" ]; then
+  if [ $in_leap_date -eq "1" ]; then
+    if [ $((10#$in_day)) -lt "0" ] || [ $((10#$in_day)) -gt "29" ]; then
+      echo 1  
+  elif [ $in_leap_date -eq "0" ]; then
+    if [ $((10#$in_day)) -lt "0" ] || [ $((10#$in_day)) -gt "28" ]; then
+      echo 1
+	else
+		echo 0
+  	fi
+		fi
+	fi
 fi
 }
 
-# 30 days in Apr,June,Sept,Nov
-#while [ $MONTH -eq "04" ] || [ $MONTH -eq "06" ] || [ $MONTH -eq "09" ] || [ $MONTH -eq "11" ]; do
-#  if [ $((10#$DAY)) -lt "0" ] || [ $DAY -gt "30" ]; then
-#    read -p "That day doesn't exist in that month. Try again: " input
-#  fi  
-#done
+# /////// STARTING DATE ///////
+printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the START of your shift: "
+read INPUT
+IN_DATE=$(check_date_format $INPUT) 		# This var equals the formatted date
+# IN_FINAL_DATE=$(check_date $IN_DATE) 	# Hopefully run the verified date above thru the last check
 
-# 28-29 days in Feb
-#while [ $MONTH -eq "02" ]; do
-#  if [ $LEAP_DATE -eq "1" ]; then
-#    if [ $((10#$DAY)) -lt "0" ] || [ $DAY -gt "29" ]; then
-#      read -p "That day doesn't exist in that month. Try again: " input
-#    fi  
-#  elif [ $LEAP_DATE -eq "0" ]; then
-#    if [ $((10#$DAY)) -lt "0" ] || [ $DAY -gt "28" ]; then
-#      read -p "That day doesn't exist in that month. Try again: " input
-#    fi  
-#  fi  
-#done
-#echo $input
-#}
+# Break dates into variables
+# --> Turn into func? <--
+IN_MONTH=$(echo $IN_DATE | awk -F'-' '{print $1}')
+IN_DAY=$(echo $IN_DATE | awk -F'-' '{print $2}')
+IN_YEAR=$(echo $IN_DATE | awk -F'-' '{print $3}')
 
-while [[ $(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE) -eq "1" ]]; do
+IN_LEAP_DATE=$(leap_year $IN_YEAR) 		# 1 = yes, 0 = no
+
+
+IN_FUNC_TEST=$(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE)
+while [[ $IN_FUNC_TEST -eq 1 ]]; do 
   echo "That day doesn't exist in that month. Try again."
-	printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the start of your shift: "
+	printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the START of your shift: "
 	read INPUT
 	IN_DATE=$(check_date_format $INPUT) # This var equals the formatted date
 
 	IN_MONTH=$(echo $IN_DATE | awk -F'-' '{print $1}')
 	IN_DAY=$(echo $IN_DATE | awk -F'-' '{print $2}')
 	IN_YEAR=$(echo $IN_DATE | awk -F'-' '{print $3}')
+
+	IN_FUNC_TEST=$(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE)
 done
-echo "$IN_MONTH"
-echo "$IN_DAY"
+
+# /////// ENDING DATE ///////
+printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the END of your shift: "
+read INPUT
+OUT_DATE=$(check_date_format $INPUT) # This var equals the formatted date
+# OUT_FINAL_DATE=$(check_date $OUT_DATE) # Hopefully run the verified date above thru the last check
+
+OUT_MONTH=$(echo $OUT_DATE | awk -F'-' '{print $1}')
+OUT_DAY=$(echo $OUT_DATE | awk -F'-' '{print $2}')
+OUT_YEAR=$(echo $OUT_DATE | awk -F'-' '{print $3}')
+
+OUT_LEAP_DATE=$(leap_year $OUT_YEAR) 	# 1 = yes, 0 = no
+
+OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
+while [[ $OUT_FUNC_TEST -eq 1 ]]; do 
+  echo "That day doesn't exist in that month. Try again."
+	printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the END of your shift: "
+	read INPUT
+	OUT_DATE=$(check_date_format $INPUT) # This var equals the formatted date
+
+	OUT_MONTH=$(echo $OUT_DATE | awk -F'-' '{print $1}')
+	OUT_DAY=$(echo $OUT_DATE | awk -F'-' '{print $2}')
+	OUT_YEAR=$(echo $OUT_DATE | awk -F'-' '{print $3}')
+
+	OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
+done
 
 
 

@@ -50,7 +50,7 @@ function leap_year(){							# Check if year is a leap year
 		echo 1 || echo 0
 }
 
-function date_check(){
+function date_check(){						# Check for valid date entry
 in_month=$1
 in_day=$2
 in_leap_date=$3
@@ -92,16 +92,12 @@ fi
 printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the START of your shift: "
 read INPUT
 IN_DATE=$(check_date_format $INPUT) 		# This var equals the formatted date
-# IN_FINAL_DATE=$(check_date $IN_DATE) 	# Hopefully run the verified date above thru the last check
 
 # Break dates into variables
-# --> Turn into func? <--
 IN_MONTH=$(echo $IN_DATE | awk -F'-' '{print $1}')
 IN_DAY=$(echo $IN_DATE | awk -F'-' '{print $2}')
 IN_YEAR=$(echo $IN_DATE | awk -F'-' '{print $3}')
-
 IN_LEAP_DATE=$(leap_year $IN_YEAR) 		# 1 = yes, 0 = no
-
 
 IN_FUNC_TEST=$(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE)
 while [[ $IN_FUNC_TEST -eq 1 ]]; do 
@@ -121,12 +117,10 @@ done
 printf "PLEASE BE ADVISED: Dates must be entered in the following formay MM-DD-YYYY.\nEnter the date of the END of your shift: "
 read INPUT
 OUT_DATE=$(check_date_format $INPUT) # This var equals the formatted date
-# OUT_FINAL_DATE=$(check_date $OUT_DATE) # Hopefully run the verified date above thru the last check
 
 OUT_MONTH=$(echo $OUT_DATE | awk -F'-' '{print $1}')
 OUT_DAY=$(echo $OUT_DATE | awk -F'-' '{print $2}')
 OUT_YEAR=$(echo $OUT_DATE | awk -F'-' '{print $3}')
-
 OUT_LEAP_DATE=$(leap_year $OUT_YEAR) 	# 1 = yes, 0 = no
 
 OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
@@ -142,7 +136,6 @@ while [[ $OUT_FUNC_TEST -eq 1 ]]; do
 
 	OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
 done
-
 
 
 # /////////// TIMES ///////////
@@ -189,7 +182,7 @@ done
 
 # /////// ENDING TIMES ///////
 # Prompt for end time
-printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM\nEnter END time for $IN_DATE: "
+printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM\nEnter END time for $OUT_DATE: "
 read INPUT
 OUT_TIME=$(check_time_format $INPUT)
 
@@ -248,10 +241,10 @@ MINCALC=$(($(CONVERT_BASE_SIXTY $MINSUB)))
 # Convert hours to base ten
 FIRSTIN=$((10#$INHOUR))
 FIRSTOUT=$((10#$OUTHOUR))
-HOURS=`echo $(($FIRSTOUT-$FIRSTIN))`
+HOURS=$(($FIRSTOUT-$FIRSTIN))
 
 # Calculate hours working overnight
-# if [ $FIRSTIN -gt $FIRSTOUT ]; then HOURS=$(((24-$FIRSTIN) + $FIRSTOUT)); fi
+if [ $FIRSTIN -gt $FIRSTOUT ]; then HOURS=$(((24-$FIRSTIN) + $FIRSTOUT)); fi
 
 SECONDIN=$((10#$INMIN))
 SECONDOUT=$((10#$OUTMIN))

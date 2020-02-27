@@ -54,14 +54,14 @@ fi
 if [ $month -eq "02" ]; then
   if [ $leap_date -eq "1" ]; then
     if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "29" ]; then
-      echo 1  
+      echo 1
+		fi
   elif [ $leap_date -eq "0" ]; then
     if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "28" ]; then
       echo 1
+		fi	
   else
     echo 0
-    fi
-    fi
   fi
 fi
 }
@@ -106,7 +106,6 @@ read THREE
 # Scrub intern question input
 while [ $THREE != "Y" ] &&  [ $THREE != "y" ] && [ $THREE != "N" ] && [ $THREE != "n" ]; do
   echo "You must enter either 'Y' or 'N'."
-  echo $THREE
   echo -n "Are you an intern? (Y/N):"
   read THREE
 done
@@ -135,18 +134,20 @@ IN_DATE=$(check_date_format $INPUT)     # This var equals the formatted date
 IN_MONTH=$(echo $IN_DATE | awk -F'-' '{print $1}')
 IN_DAY=$(echo $IN_DATE | awk -F'-' '{print $2}')
 IN_YEAR=$(echo $IN_DATE | awk -F'-' '{print $3}')
-IN_LEAP_DATE=$(leap_year $IN_YEAR)    # 1 = yes, 0 = no
+IN_LEAP_DATE=$(leap_year $IN_YEAR)    	# 1 = yes, 0 = no
 
 IN_FUNC_TEST=$(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE)
+
 while [[ $IN_FUNC_TEST -eq 1 ]]; do
   echo "That day doesn't exist in that month. Try again."
   printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the START of your shift: "
   read INPUT
-  IN_DATE=$(check_date_format $INPUT) # This var equals the formatted date
+  IN_DATE=$(check_date_format $INPUT) 	# This var equals the formatted date
 
   IN_MONTH=$(echo $IN_DATE | awk -F'-' '{print $1}')
   IN_DAY=$(echo $IN_DATE | awk -F'-' '{print $2}')
   IN_YEAR=$(echo $IN_DATE | awk -F'-' '{print $3}')
+	IN_LEAP_DATE=$(leap_year $IN_YEAR)    	# 1 = yes, 0 = no
 
   IN_FUNC_TEST=$(date_check $IN_MONTH $IN_DAY $IN_LEAP_DATE)
 done
@@ -186,6 +187,7 @@ OUT_YEAR=$(echo $OUT_DATE | awk -F'-' '{print $3}')
 OUT_LEAP_DATE=$(leap_year $OUT_YEAR)  # 1 = yes, 0 = no
 
 OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
+
 while [[ $OUT_FUNC_TEST -eq 1 ]]; do
   echo "That day doesn't exist in that month. Try again."
   printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the END of your shift: "
@@ -195,6 +197,7 @@ while [[ $OUT_FUNC_TEST -eq 1 ]]; do
   OUT_MONTH=$(echo $OUT_DATE | awk -F'-' '{print $1}')
   OUT_DAY=$(echo $OUT_DATE | awk -F'-' '{print $2}')
   OUT_YEAR=$(echo $OUT_DATE | awk -F'-' '{print $3}')
+	OUT_LEAP_DATE=$(leap_year $OUT_YEAR)  # 1 = yes, 0 = no
 
   OUT_FUNC_TEST=$(date_check $OUT_MONTH $OUT_DAY $OUT_LEAP_DATE)
 done

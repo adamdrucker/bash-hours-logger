@@ -19,57 +19,20 @@ check_date_format() {
 	echo $input
 }
 
-# Check if year is a leap year
-leap_year() {            
-  year=$1
-  (( !(year % 4) && ( year % 100 || !(year % 400) ) )) &&
-    echo 1 || echo 0
-}
-
 # Check for valid date entry
 date_check() {
-	month=$1
-	day=$2
-	leap_date=$3
-
-	## 31 days in Jan,Mar,May,July,Aug,Oct,Dec
-	if [ "$month" -eq "01" ] || [ "$month" -eq "03" ] || [ "$month" -eq "05" ] || [ "$month" -eq "07" ] || [ "$month" -eq "08" ] || [ "$month" -eq "10" ] || [ "$month" -eq "12" ]; then
-  	if [ $((10#$day)) -lt 0 ] || [ $((10#$day)) -gt 31 ]; then
-    	echo 1
-  	else
-    	echo 0
-  	fi
-	fi
-
-	## 30 days in Apr,June,Sept,Nov
-	if [ $month -eq "04" ] || [ $month -eq "06" ] || [ $month -eq "09" ] || [ $month -eq "11" ]; then
-  	if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "30" ]; then
-    	echo 1
-  	else
-    	echo 0
-  	fi
-	fi
-
-	## 28-29 days in Feb
-	if [ $month -eq "02" ]; then
-  	if [ $leap_date -eq "1" ]; then
-    	if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "29" ]; then
-      	echo 1
-			fi
-  	elif [ $leap_date -eq "0" ]; then
-    	if [ $((10#$day)) -lt "0" ] || [ $((10#$day)) -gt "28" ]; then
-      	echo 1
-			fi	
-  	else
-    	echo 0
-  	fi
+	check=$(date '+m%-%d-%Y' -d "$(echo $1 | tr '-' '/')" &> /dev/null; echo $?)
+	if [ $check -eq 0 ]; then
+		echo 0
+	elif [ $check -eq 1 ]; then
+		echo 1
 	fi
 }
 
 # //////// TIMES ////////
 
 # Check time input format
-function check_time_format() {
+check_time_format() {
 	input=$1
 	while [[ ! $input =~ ^[0-9]{2}:[0-9]{2}+$ ]]
 	do
@@ -93,6 +56,13 @@ convert_base_sixty() {
 	echo $baseten
 }
 
+lunch_hours(){
+if [ $1 == "Y" ] || [ $1 == "y" ]; then
+	echo "LUNCH"
+elif [ $1 == "N" ] || [ $1 == "n" ]; then
+	echo "MGHPCC/INTERN"
+fi
+}
 
 # /////// MAIN & INPUTS ///////
 # ////////////////////////////
@@ -102,42 +72,29 @@ main() {
 
 	# Static variables
 	NAME=$(echo $USER)
-	PAYCODE="MGHPCC/INTERN"
 	BILLABLE="Y"
 	EMERGENCY="N"
 	
 	# /////// STARTING ///////
 
 	# Date advisement
-	printf "PLEASE BE ADVISED: Each entry must be for the same date,\nand entered in the following format MM-DD-YYYY.\nEnter the date of your shift: "
-	read INPUT
+	printf "PLEASE BE ADVISED: Each entry must be for the same date,\nand entered in the following format MM-DD-YYYY.\nEnter the date of your shift: "; read INPUT
 	SHIFT_DATE=$(check_date_format $INPUT)     # This var equals the formatted date
-
-	# Break dates into variables
-	S_MONTH=$(echo $SHIFT_DATE | awk -F'-' '{print $1}')
-	S_DAY=$(echo $SHIFT_DATE | awk -F'-' '{print $2}')
-	S_YEAR=$(echo $SHIFT_DATE | awk -F'-' '{print $3}')
-	S_LEAP_DATE=$(leap_year $S_YEAR)    	# 1 = yes, 0 = no
-
-	S_FUNC_TEST=$(date_check $S_MONTH $S_DAY $S_LEAP_DATE)
+	S_FUNC_TEST=$(date_check $SHIFT_DATE)
 
 	while [[ $S_FUNC_TEST -eq 1 ]]; do
 		echo "That day doesn't exist in that month. Try again."
-		printf "PLEASE BE ADVISED: Dates must be entered in the following format MM-DD-YYYY.\nEnter the date of the START of your shift: "
-		read INPUT
+		printf "PLEASE BE ADVISED: Each entry must be for the same date, \n and entered in the following format MM-DD-YYYY.\nEnter the date of your shift: "; read INPUT
 		SHIFT_DATE=$(check_date_format $INPUT) 	# This var equals the formatted date
-
-		S_MONTH=$(echo $SHIFT_DATE | awk -F'-' '{print $1}')
-		S_DAY=$(echo $SHIFT_DATE | awk -F'-' '{print $2}')
-		S_YEAR=$(echo $SHIFT_DATE | awk -F'-' '{print $3}')
-		S_LEAP_DATE=$(leap_year $S_YEAR)    	# 1 = yes, 0 = no
-
-		S_FUNC_TEST=$(date_check $S_MONTH $S_DAY $S_LEAP_DATE)
+		S_FUNC_TEST=$(date_check $SHIFT_DATE)
 	done
 
+	# Lunch time
+	echo -n "Are these LUNCH hours? (Y/N): "; read LUNCH
+	PAYCODE=$(lunch_hours $LUNCH)
+
 	# Prompt to enter start time
-	printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter START time for $SHIFT_DATE: "
-	read INPUT
+	printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter START time for $SHIFT_DATE: "; read INPUT
 	SIN_TIME=$(check_time_format $INPUT)
 
 	# Break up time and combine
@@ -149,8 +106,7 @@ main() {
 	while [ $CMBN -ge 2400 ]; do
 		echo "The time you enter cannot exceed 23:59. Try again."
 		echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
-		echo "Enter START time for $SHIFT_DATE: "
-		read INPUT
+		echo "Enter START time for $SHIFT_DATE: "; read INPUT
 		SIN_TIME=$(check_time_format $INPUT)
 		INHOUR=$(echo $SIN_TIME | awk -F: '{print $1}')
 		INMIN=$(echo $SIN_TIME | awk -F: '{print $2}')
@@ -160,8 +116,7 @@ main() {
 	# /////// ENDING ///////
 
 	# Prompt to enter end time
-	printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter END time for $SHIFT_DATE: "
-	read INPUT
+	printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter END time for $SHIFT_DATE: "; read INPUT
 	SOUT_TIME=$(check_time_format $INPUT)
 
 	OUTHOUR=$(echo $SOUT_TIME | awk -F: '{print $1}')
@@ -172,8 +127,7 @@ main() {
 	while [ $COMBN -ge 2400 ]; do
 		echo "The time you enter cannot exceed 23:59. Try again."
 		echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
-		echo -n "Enter END time for $SHIFT_DATE: "
-		read INPUT
+		echo -n "Enter END time for $SHIFT_DATE: "; read INPUT
 		SOUT_TIME=$(check_time_format $INPUT)
 		OUTHOUR=$(echo $SOUT_TIME | awk -F: '{print $1}')
 		OUTMIN=$(echo $SOUT_TIME | awk -F: '{print $2}')
@@ -199,8 +153,6 @@ main() {
 	SECONDOUT=$((10#$OUTMIN))
 
 	HOURS=$(($FIRSTOUT-$FIRSTIN))
-	# Hours offset for overnight
-	if [ $FIRSTIN -gt $FIRSTOUT ]; then HOURS=$(((24-$FIRSTIN) + $FIRSTOUT)); fi
 
 	# If punch in and out are not whole hours adjust by one hour
 	if [ $SECONDIN -gt $SECONDOUT  ]; then
@@ -213,18 +165,14 @@ main() {
 	# Format total as a float
 	TOTAL=$HOURS"."$MINCALC
 
-	#
 	# Prompt for description of work
-	echo -n "Enter a description: "
-	read DESC_INPUT
-	#
+	echo -n "Enter a description: "; read DESC_INPUT
 
 	# /////////// Output ///////////
 
 	OUTPUT="$NAME|$SHIFT_DATE $SIN_TIME|$SHIFT_DATE $SOUT_TIME|$TOTAL|${PAYCODE^^}|${BILLABLE^^}|${EMERGENCY^^}|$DESC_INPUT"
 	echo $OUTPUT
-	echo -n "Is the preceding information correct? (Y/N) "
-	read CORRECT
+	echo -n "Is the preceding information correct? (Y/N) "; read CORRECT
 
 	if [ $CORRECT == "Y" ] || [ $CORRECT == "y" ]; then
 		echo $OUTPUT >> "/home/$USER/Documents/Timecards/timecard_$DATE_LOGGED.txt"
@@ -240,18 +188,16 @@ main() {
 		break
 	done
 
-	echo -n "Press [ENTER] to start another entry or 'q' to quit. "
-	read START
+	echo -n "Press [ENTER] to start another entry or 'q' to quit. "; read START
 
 }
 
 # /////////// Prompts ///////////
 # //////////////////////////////
 
-printf "Welcome to the Timecard Logging System.\nHere you will enter the dates and hours you've worked.\nTasks should be separated and itemized with dates/hours recorded for each entry.\n"
+printf "Welcome to the Timecard Logging System.\nHere you will enter the dates and hours you've worked.\nTasks should be separated and itemized.\n"
 
-echo -n "Press [ENTER] to start, press 'q' to quit. "
-read START
+echo -n "Press [ENTER] to start, press 'q' to quit. "; read START
 
 test -d "/home/$USER/Documents/Timecards"
 if [ $? == 1 ]; then
@@ -267,4 +213,3 @@ test -e "/home/$USER/Documents/Timecards/"timecard_$DATE_LOGGED.txt""
 while [[ $START != 'q' ]]; do
 	main
 done
-

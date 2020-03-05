@@ -38,25 +38,27 @@ check_time_format() {
 	do
   	read -p "Incorrect format, try again. Enter the time for your shift: " input
 	done
-	echo "$input"
+	echo $input
 }
-#########################################
-time_check() {
-hour=$(echo $1 | awk -F: '{print $1}')
-min=$(echo $1 | awk -F: '{print $2}')
-cmbn=$hour$min
 
-while [ $cmbn -ge 2400 ]; do
-  read -p "The time you enter cannot exceed 23:59. Try again." input
-	#echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
-  #echo -n "Enter time: "; read input
-  hour=$(echo $input | awk -F: '{print $1}')
-  min=$(echo $input | awk -F: '{print $2}')
-  cmbn=$hour$min
-done
-echo "$input"
-}
-###########################################
+##########################################################################################
+#time_check() {
+#hour=$(echo $1 | awk -F: '{print $1}')
+#min=$(echo $1 | awk -F: '{print $2}')
+#cmbn=$hour$min
+
+#while [ $cmbn -ge 2400 ]; do
+#  read -p "The time you enter cannot exceed 23:59. Try again." input
+#	#echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
+#  #echo -n "Enter time: "; read input
+#  hour=$(echo $input | awk -F: '{print $1}')
+#  min=$(echo $input | awk -F: '{print $2}')
+#  cmbn=$hour$min
+#done
+#echo $input
+#}
+##########################################################################################
+
 # Convert minutes into decimal format for submission
 convert_base_sixty() {
 	min=$((10#$1))
@@ -111,44 +113,44 @@ main() {
 
 	# Prompt to enter start time
 	printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter START time for $SHIFT_DATE: "; read INPUT
-	FIN_TIME=$(check_time_format $INPUT) # Change back to SIN_TIME
-	FIN_TIME=$(time_check $INPUT)				 # Delete?
+	SIN_TIME=$(check_time_format $INPUT) # Change back to SIN_TIME
+	#SIN_TIME=$(time_check $FIN_TIME)				 # Delete?
 	# Break up time and combine
-	#INHOUR=$(echo $SIN_TIME | awk -F: '{print $1}')
-	#INMIN=$(echo $SIN_TIME | awk -F: '{print $2}')
-	#CMBN=$INHOUR$INMIN
-
-	# Check combineid IN value
-	#while [ $CMBN -ge 2400 ]; do
-	#	echo "The time you enter cannot exceed 23:59. Try again."
-	#	echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
-	#	echo "Enter START time for $SHIFT_DATE: "; read INPUT
-	#	SIN_TIME=$(check_time_format $INPUT)
 	INHOUR=$(echo $SIN_TIME | awk -F: '{print $1}')
 	INMIN=$(echo $SIN_TIME | awk -F: '{print $2}')
-	#	CMBN=$INHOUR$INMIN
-	#done
+	CMBN=$INHOUR$INMIN
+
+	# Check combineid IN value
+	while [ $CMBN -ge 2400 ]; do
+		echo "The time you enter cannot exceed 23:59. Try again."
+		echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
+		echo "Enter START time for $SHIFT_DATE: "; read INPUT
+		SIN_TIME=$(check_time_format $INPUT)
+	INHOUR=$(echo $SIN_TIME | awk -F: '{print $1}')
+	INMIN=$(echo $SIN_TIME | awk -F: '{print $2}')
+		CMBN=$INHOUR$INMIN
+	done
 
 	# /////// ENDING ///////
 
 	# Prompt to enter end time
 	printf "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM.\nEnter END time for $SHIFT_DATE: "; read INPUT
-	FOUT_TIME=$(check_time_format $INPUT) # Change back to SOUT_TIME
-	SOUT_TIME=$(time_check $FOUT_TIME)		# Delete?
-	#OUTHOUR=$(echo $SOUT_TIME | awk -F: '{print $1}')
-	#OUTMIN=$(echo $SOUT_TIME | awk -F: '{print $2}')
-	#COMBN=$OUTHOUR$OUTMIN
-
-	# Check combined OUT value
-	#while [ $COMBN -ge 2400 ]; do
-	#	echo "The time you enter cannot exceed 23:59. Try again."
-	#	echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
-	#	echo -n "Enter END time for $SHIFT_DATE: "; read INPUT
-	#	SOUT_TIME=$(check_time_format $INPUT)
+	SOUT_TIME=$(check_time_format $INPUT) # Change back to SOUT_TIME
+	#SOUT_TIME=$(time_check $FOUT_TIME)		# Delete?
 	OUTHOUR=$(echo $SOUT_TIME | awk -F: '{print $1}')
 	OUTMIN=$(echo $SOUT_TIME | awk -F: '{print $2}')
-	#	COMBN=$OUTHOUR$OUTMIN
-	#done
+	COMBN=$OUTHOUR$OUTMIN
+
+	# Check combined OUT value
+	while [ $COMBN -ge 2400 ]; do
+		echo "The time you enter cannot exceed 23:59. Try again."
+		echo "PLEASE BE ADVISED: Times must be formatted in 24-hour notation as HH:MM."
+		echo -n "Enter END time for $SHIFT_DATE: "; read INPUT
+		SOUT_TIME=$(check_time_format $INPUT)
+	OUTHOUR=$(echo $SOUT_TIME | awk -F: '{print $1}')
+	OUTMIN=$(echo $SOUT_TIME | awk -F: '{print $2}')
+		COMBN=$OUTHOUR$OUTMIN
+	done
 
 	# /////////// Time calculations ///////////
 	# ////////////////////////////////////////
